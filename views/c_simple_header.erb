@@ -1,0 +1,39 @@
+<% hname = @hwblock.name.upcase %>
+#ifndef __<%= hname %>_H
+#define __<%= hname %>_H
+
+/*
+ * Register Map
+ */
+
+<% @hwblock.registers.each do |r| %>
+<% rname = r.name.upcase %>
+<% roffset = r.offset.to_s(16).rjust(r.size/4, "0") %>
+<% if r.group != nil %>
+<% rstep = r.group["step"].to_s(16).rjust(r.size/4, "0") %>
+#define <%= rname %>(index) (0x<%= roffset %>U + (index * 0x<%= rstep %>U))
+<% else %>
+#define <%= rname %> (0x<%= roffset %>U)
+<% end %>
+<% r.fields.each do |f| %>
+<% fname = f.name.upcase %>
+<% fpos = f.pos.to_s(16).rjust(r.size/4, "0") %>
+<% fmask = f.mask.to_s(16).rjust(r.size/4, "0") %>
+<% if f.enum.length > 0 %>
+
+#define <%= rname %>_<%= fname %>_SHIFT 0x<%= fpos %>U
+#define <%= rname %>_<%= fname %>_MASK  0x<%= fmask %>U
+<% else %>
+#define <%= rname %>_<%= fname %>_MASK  0x<%= fmask %>U
+<% end %>
+<% f.enum.each do |k, v| %>
+<% kname = k.upcase %>
+<% vname = v.to_s(16).rjust(r.size/4, "0") %>
+#define <%= rname %>_<%= fname %>_<%= k %> 0x<%= vname %>U
+<% end %>
+<% end %>
+
+
+<% end %>
+
+#endif /* __<%= hname %>_H */

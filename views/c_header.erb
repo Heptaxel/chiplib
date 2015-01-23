@@ -1,0 +1,50 @@
+<% hname = @hwblock.name.upcase %>
+#ifndef __<%= hname %>_H
+#define __<%= hname %>_H
+
+#include <stdint.h>
+        
+/*
+ * ==== Register Map ====
+ */
+
+<% current_offset = 0x0 %>
+<% reserved_counter = 0 %>
+typedef struct
+{
+<% @hwblock.registers.each do |r| %>
+<% rname = r.name.upcase %>
+<% if current_offset < r.offset %>
+	uint<%= r.size %>_t reserved<%= reserved_counter %>[<%= (r.offset - current_offset)/r.size %>];
+<% reserved_counter = reserved_counter + 1 %>
+<% end %>
+	uint<%= r.size %>_t <%= rname %>;
+<% current_offset = current_offset + r.size %>
+<% end %>
+} <%= @hwblock.name.upcase %>_Regs;
+
+/*
+ * ==== Field Definitions ====
+ */
+
+<% @hwblock.registers.each do |r| %>
+<% rname = r.name.upcase %>
+typedef enum
+{
+<% r.fields.each do |f| %>
+<% fname = f.name.upcase %>
+<% fpos = f.pos.to_s(16) %>
+<% fmask = f.mask.to_s(16) %>
+	<%= rname %>_<%= fname %>_MASK = 0x<%= fmask %>U,
+<% f.enum.each do |k, v| %>
+<% kname = k.upcase %>
+<% vname = (v << f.pos).to_s(16) %>
+	<%= rname %>_<%= fname %>_<%= k %> = 0x<%= vname %>U,
+<% end %>
+
+<% end %>
+} <%= rname %>_Fields;
+
+<% end %>
+
+#endif /* __<%= hname %>_H */
